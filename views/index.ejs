@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Tytuły</title>
+</head>
+<body>
+<p>Tytuły:</p>
+    <% if (message.length) { %>
+        <ul>
+            <% for(var i = 0; i < message.length; i++) { %>
+            <li><%= message[i] %></li>
+            <% } %>
+        </ul>
+    <% } else { %>
+        <span>&lt;brak pozycji&gt;</span>
+    <% } %>
+    <form action="/msg" method="post">
+
+        <label for="frontmessage">Nowy tytuł: </label>
+        <input id="frontmessage" type="text" name="frontmessage">
+        <input type="submit" value="DODAJ">
+    </form>
+</body>
+</html>
