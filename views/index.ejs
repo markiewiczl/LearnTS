@@ -5,10 +5,16 @@
 </head>
 <body>
 <p>Tytuły:</p>
-    <% if (message.length) { %>
+    <% if (messages.length) { %>
         <ul>
-            <% for(var i = 0; i < message.length; i++) { %>
-            <li><%= message[i] %></li>
+            <% for(var i = 0; i < messages.length; i++) { %>
+            <li>Tytuł: <%= messages[i] %> Autor:
+                <% if(author[i]) { %>
+                    <%= author[i] %>
+                    <% } else { %>
+                    -
+                    %< } %></li>
+                 <% } %>
             <% } %>
         </ul>
     <% } else { %>
@@ -18,7 +24,18 @@
 
         <label for="frontmessage">Nowy tytuł: </label>
         <input id="frontmessage" type="text" name="frontmessage">
+        <label for="author">Autor: </label>
+        <input id="author" type="text" name="author">
         <input type="submit" value="DODAJ">
+    </form>
+    <form method="POST" action="/delete">
+        <label for="removedAuthor">usuń:</label>
+        <select name="removedAuthor" id="removedAuthor">
+            <% messages.forEach(function(message) { %>
+                <option value="<%= message %>"><%= message %></option>
+            <% }); %>
+        </select>
+        <input type="submit" value="Usuń">
     </form>
 </body>
 </html>
