@@ -17,9 +17,6 @@
         th {
             background-color: #f2f2f2;
         }
-        dupa {
-            display: inline;
-        }
     </style>
 </head>
 <body>
@@ -39,27 +36,24 @@
             <td><%= book.name %></td>
             <td><%= book.author %></td>
             <td>
-                <div class="dupa">
                 <form method="POST" action="/delete/<%= book.id %>">
                     <input type="submit" value="Usuń">
                 </form>
                 <form method="POST" action="/update/<%= book.id %>">
                     <input type="submit" value="Zmień">
                 </form>
-                </div>
             </td>
         </tr>
     <% }); %>
     </tbody>
 </table>
+    <form action="/add" method="POST">
 
-<form action="/add" method="POST">
-
-    <label for="name">Nowy tytuł: </label>
-    <input id="name" type="text" name="name">
-    <label for="author">Autor: </label>
-    <input id="author" type="text" name="author">
-    <input type="submit" value="DODAJ">
-</form>
+        <label for="name">Nowy tytuł: </label>
+        <input id="name" type="text" name="name">
+        <label for="author">Autor: </label>
+        <input id="author" type="text" name="author">
+        <input type="submit" value="DODAJ">
+    </form>
 </body>
 </html>

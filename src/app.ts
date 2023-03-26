@@ -8,6 +8,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const util = require("util");
+const port = process.env.PORT || 3002;
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -68,17 +69,23 @@ app.post('/update/:id', async (req: Request, res: Response) => {
     const bookRepository = AppDataSource.getRepository(Book)
     // @ts-ignore
     const bookUpdated = await bookRepository.findOneBy({id: req.params.id})
-    // @ts-ignore
-    bookUpdated.name = req.body.name
-    // @ts-ignore
-    bookUpdated.author = req.body.author
+    const currentPageUrl = req.url;
+    const previousPageUrl = req.headers.referer || '/';
+    if ('http://localhost:'+ port + currentPageUrl === previousPageUrl) {
+        // @ts-ignore
+        bookUpdated.name = req.body.name;
 
-    await AppDataSource.manager.save(bookUpdated);
+        // @ts-ignore
+        bookUpdated.author = req.body.author;
 
-    return res.render('update_book', {book: bookUpdated, id: req.params.id});
+        await AppDataSource.manager.save(bookUpdated);
+
+        res.redirect("/");
+    }
+
+    return res.render('update_book.ejs', {book: bookUpdated, id: req.params.id, dupa: currentPageUrl, dupa2: previousPageUrl});
 });
 
-const port = process.env.PORT || 3001;
 app.listen(port, () => {
     console.log("App is running")
 })
