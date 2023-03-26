@@ -1,0 +1,24 @@
+{
+   "compilerOptions": {
+      "outDir": "./dist",
+      "rootDir": "./src",
+      "allowJs": true,
+      "strict": true,
+      "noImplicitAny": true,
+      "allowSyntheticDefaultImports": true,
+      "sourceMap": true,
+      "declaration": true,
+      "declarationMap": true,
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+      "lib": [
+         "es5",
+         "es6"
+      ],
+      "target": "es5",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+   }
+}

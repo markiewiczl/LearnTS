@@ -2,40 +2,64 @@
 <html lang="en">
 <head>
     <title>Tytuły</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+        dupa {
+            display: inline;
+        }
+    </style>
 </head>
 <body>
-<p>Tytuły:</p>
-    <% if (messages.length) { %>
-        <ul>
-            <% for(var i = 0; i < messages.length; i++) { %>
-            <li>Tytuł: <%= messages[i] %> Autor:
-                <% if(author[i]) { %>
-                    <%= author[i] %>
-                    <% } else { %>
-                    -
-                    %< } %></li>
-                 <% } %>
-            <% } %>
-        </ul>
-    <% } else { %>
-        <span>&lt;brak pozycji&gt;</span>
-    <% } %>
-    <form action="/msg" method="post">
+<table class="border-1px">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Akcje</th>
+    </tr>
+    </thead>
+    <tbody>
+    <% books.forEach((book) => { %>
+        <tr>
+            <td><%= book.id %></td>
+            <td><%= book.name %></td>
+            <td><%= book.author %></td>
+            <td>
+                <div class="dupa">
+                <form method="POST" action="/delete/<%= book.id %>">
+                    <input type="submit" value="Usuń">
+                </form>
+                <form method="POST" action="/update/<%= book.id %>">
+                    <input type="submit" value="Zmień">
+                </form>
+                </div>
+            </td>
+        </tr>
+    <% }); %>
+    </tbody>
+</table>
 
-        <label for="frontmessage">Nowy tytuł: </label>
-        <input id="frontmessage" type="text" name="frontmessage">
-        <label for="author">Autor: </label>
-        <input id="author" type="text" name="author">
-        <input type="submit" value="DODAJ">
-    </form>
-    <form method="POST" action="/delete">
-        <label for="removedAuthor">usuń:</label>
-        <select name="removedAuthor" id="removedAuthor">
-            <% messages.forEach(function(message) { %>
-                <option value="<%= message %>"><%= message %></option>
-            <% }); %>
-        </select>
-        <input type="submit" value="Usuń">
-    </form>
+<form action="/add" method="POST">
+
+    <label for="name">Nowy tytuł: </label>
+    <input id="name" type="text" name="name">
+    <label for="author">Autor: </label>
+    <input id="author" type="text" name="author">
+    <input type="submit" value="DODAJ">
+</form>
 </body>
 </html>
