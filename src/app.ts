@@ -1,91 +1,170 @@
-import {Request, Response} from "express";
-import {AppDataSource} from "./data-source";
-import {Book} from "./entity/Book";
+import express, { Request, Response, Express } from "express";
+import { AppDataSource } from "./data-source";
+import { Book } from "./entity/Book";
+import { BookResolver } from "./Reolvers/book";
+import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
 
+const main = async () => {
+    const swaggerUi = require('swagger-ui-express');
+    const YAML = require('yamljs');
+    const swaggerDocument = YAML.load('swagger.yaml');
 
-const http = require('http');
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-const util = require("util");
-const port = process.env.PORT || 3002;
-var urlencodedParser = bodyParser.urlencoded({ extended: false });
-app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+    const app: Express = express();
+    const bodyParser = require('body-parser');
+    const port = process.env.PORT || 3001;
+    app.use(bodyParser.json());
+    app.set('view engine', 'ejs');
+    app.use(bodyParser.urlencoded({ extended: true }));
 
-const name = null;
-const author = null;
+    const book = AppDataSource.getRepository(Book);
 
-const book = AppDataSource.getRepository(Book);
+    const apolloServer = new ApolloServer({
+        schema: await buildSchema({
+            resolvers: [BookResolver],
+            validate: false,
+        }),
+    });
 
-app.get('/', async (req: Request, res: Response) => {
-    const books = await book.find();
+    await apolloServer.start();
 
-    if (!books) {
-        return res.status(404).send('Book not found');
-    }
+    apolloServer.applyMiddleware({ app });
 
-    return res.render('index', {books: books});
-});
+    app.get('/', async (req: Request, res: Response) => {
+        const books = await book.find();
 
-app.post('/add', async (req: Request, res: Response) => {
-    const newBook = new Book();
-    const name = req.body.name;
-    const author = req.body.author;
-    console.log(name, author)
-    newBook.name = name
-    newBook.author = author
-    await AppDataSource.manager.save(newBook);
+        if (!books) {
+            return res.status(404).send('Book not found');
+        }
 
-    const books = await book.find();
+        return res.render('index', {books: books});
+    });
 
-    if (!books) {
-        return res.status(404).send('Book not found');
-    }
+    app.post('/add', async (req: Request, res: Response) => {
+        const newBook = new Book();
+        const name = req.body.name;
+        const author = req.body.author;
+        console.log(name, author)
+        newBook.name = name
+        newBook.author = author
+        await AppDataSource.manager.save(newBook);
 
-    return res.render('index', {books: books});
-});
+        const books = await book.find();
 
-app.post('/delete/:id', async (req: Request, res: Response) => {
+        if (!books) {
+            return res.status(404).send('Book not found');
+        }
 
-    const bookRepository = AppDataSource.getRepository(Book)
-    // @ts-ignore
-    const bookRemoved = await bookRepository.findOneBy({id: req.params.id})
-    if (bookRemoved?.id)
-    await bookRepository.remove(bookRemoved)
+        return res.render('index', {books: books});
+    });
 
-    const books = await book.find();
+    app.post('/delete/:id', async (req: Request, res: Response) => {
 
-    if (!books) {
-        return res.status(404).send('Book not found');
-    }
-
-    return res.render('index', {books: books});
-});
-
-app.post('/update/:id', async (req: Request, res: Response) => {
-
-    const bookRepository = AppDataSource.getRepository(Book)
-    // @ts-ignore
-    const bookUpdated = await bookRepository.findOneBy({id: req.params.id})
-    const currentPageUrl = req.url;
-    const previousPageUrl = req.headers.referer || '/';
-    if ('http://localhost:'+ port + currentPageUrl === previousPageUrl) {
+        const bookRepository = AppDataSource.getRepository(Book)
         // @ts-ignore
-        bookUpdated.name = req.body.name;
+        const bookRemoved = await bookRepository.findOneBy({id: req.params.id})
+        if (bookRemoved?.id)
+            await bookRepository.remove(bookRemoved)
 
+        const books = await book.find();
+
+        if (!books) {
+            return res.status(404).send('Book not found');
+        }
+
+        return res.render('index', {books: books});
+    });
+
+    app.post('/update/:id', async (req: Request, res: Response) => {
+
+        const bookRepository = AppDataSource.getRepository(Book)
         // @ts-ignore
-        bookUpdated.author = req.body.author;
+        const bookUpdated = await bookRepository.findOneBy({id: req.params.id})
+        const currentPageUrl = req.url;
+        const previousPageUrl = req.headers.referer || '/';
+        if ('http://localhost:' + port + currentPageUrl === previousPageUrl) {
+            // @ts-ignore
+            bookUpdated.name = req.body.name;
 
-        await AppDataSource.manager.save(bookUpdated);
+            // @ts-ignore
+            bookUpdated.author = req.body.author;
 
-        res.redirect("/");
-    }
+            await AppDataSource.manager.save(bookUpdated);
 
-    return res.render('update_book.ejs', {book: bookUpdated, id: req.params.id, dupa: currentPageUrl, dupa2: previousPageUrl});
-});
+            res.redirect("/");
+        }
 
-app.listen(port, () => {
-    console.log("App is running")
-})
+        return res.render('update_book.ejs', {
+            book: bookUpdated,
+            id: req.params.id,
+            dupa: currentPageUrl,
+            dupa2: previousPageUrl
+        });
+    });
+
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+    app.get('/api/books', async (req: Request, res: Response) => {
+        const books = await book.find();
+
+        res.json(books);
+    });
+
+    app.get('/api/books/:name', async (req: Request, res: Response) => {
+
+        const books = await book.find();
+
+        const searchedBook = books.find(b => b.name === req.params.name);
+        if (searchedBook) {
+            res.json(searchedBook);
+        } else {
+            res.status(404).send('Book not found');
+        }
+    });
+
+    app.post('/api/books', async (req: Request, res: Response) => {
+        const books = await book.find();
+
+        const newBook: Book = req.body;
+        books.push(newBook);
+        await book.save(newBook);
+        res.json(newBook);
+    });
+
+    app.put('/api/books/:id', async (req: Request, res: Response) => {
+        const bookId = req.params.id;
+        const { name, author } = req.body;
+
+            // @ts-ignore
+            const books = await book.findOneBy({id:bookId});
+            if(books) {
+                books.name = name || books.name;
+                books.author = author || books.author;
+
+                await book.save(books);
+                res.send(books);
+            } else {
+                res.status(404).send('Book not found');
+            }
+    });
+
+    app.delete('/api/books/:name', async (req: Request, res: Response) => {
+        const books = await book.find();
+
+        const bookIndex = books.findIndex(b => b.name === req.params.name);
+        if (bookIndex !== -1) {
+            const deletedBook = books.splice(bookIndex, 1)[0];
+            await book.save(books);
+            res.json(books);
+        } else {
+            res.status(404).send('Book not found');
+        }
+    });
+
+
+    app.listen(port, () => {
+        console.log("App is running")
+    })
+}
+
+main()
