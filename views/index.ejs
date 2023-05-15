@@ -20,7 +20,7 @@
     </style>
 </head>
 <body>
-<table class="border-1px">
+<table class="border-1px" id="studenty">
     <thead>
     <tr>
         <th>ID</th>
@@ -47,7 +47,7 @@
     <% }); %>
     </tbody>
 </table>
-    <form action="/add" method="POST">
+    <form action="/add" method="POST" id="create-form">
 
         <label for="name">Nowy tytuł: </label>
         <input id="name" type="text" name="name">
@@ -55,5 +55,87 @@
         <input id="author" type="text" name="author">
         <input type="submit" value="DODAJ">
     </form>
+<button id="dupa">dupa</button>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.4.js"></script>
+<script>
+    $(function () {
+        $('#dupa').on('click', function () {
+            $.ajax({
+                url: '/api/books',
+                contentType: 'application/json',
+                success: function (response) {
+                    var tbody = $('#studenty');
+
+                    tbody.html('');
+
+                    response.forEach(function(product) {
+                        tbody.append('\
+                        <tr>\
+                            <td class="id">' + product.id + '</td>\
+                            <td><input type="text" class="name" value="' + product.name + '"></td>\
+                            <td><input type="text" class="name" value="' + product.author + '"></td>\
+                            <td>\
+                                <button class="update-button">UPDATE/PUT</button>\
+                                <button class="delete-button">DELETE</button>\
+                            </td>\
+                        </tr>\
+                    ');
+                    });
+                }
+            })
+        })
+        $('#create-form').on('submit', function(event) {
+            event.preventDefault();
+
+            var name = $('#name');
+            var author = $('#author');
+
+            $.ajax({
+                url: '/api/books',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ name: name.val(), author: author.val() }),
+                success: function(response) {
+                    console.log(response);
+                    name.val('');
+                    $('#dupa').click();
+                }
+            });
+        });
+
+        $('#studenty').on('click', '.update-button', function() {
+            var rowEl = $(this).closest('tr');
+            var id = rowEl.find('.id').text();
+            var newName = rowEl.find('.name').val();
+            var newAuthor = rowEl.find('.author').val();
+
+            $.ajax({
+                url: '/api/books/' + id,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ name: newName, author: newAuthor }),
+                success: function(response) {
+                    console.log(response);
+                    $('#dupa').click();
+                }
+            });
+        });
+        $('#studenty').on('click', '.delete-button', function() {
+            var rowEl = $(this).closest('tr');
+            var id = rowEl.find('.name').val();
+
+            $.ajax({
+                url: '/api/books/' + id,
+                method: 'DELETE',
+                contentType: 'application/json',
+                success: function(response) {
+                    console.log(response);
+                    $('#dupa').click();
+                }
+            });
+        });
+    })
+</script>
 </body>
 </html>

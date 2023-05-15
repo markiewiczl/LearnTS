@@ -12,7 +12,7 @@ const main = async () => {
 
     const app: Express = express();
     const bodyParser = require('body-parser');
-    const port = process.env.PORT || 3001;
+    const port = process.env.PORT || 3000;
     app.use(bodyParser.json());
     app.set('view engine', 'ejs');
     app.use(bodyParser.urlencoded({ extended: true }));
@@ -151,11 +151,9 @@ const main = async () => {
     app.delete('/api/books/:name', async (req: Request, res: Response) => {
         const books = await book.find();
 
-        const bookIndex = books.findIndex(b => b.name === req.params.name);
-        if (bookIndex !== -1) {
-            const deletedBook = books.splice(bookIndex, 1)[0];
-            await book.save(books);
-            res.json(books);
+        const deletedBook = await book.delete({ name: req.params.name });
+        if (deletedBook) {
+            res.json(deletedBook);
         } else {
             res.status(404).send('Book not found');
         }
