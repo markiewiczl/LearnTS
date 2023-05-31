@@ -19,6 +19,6 @@
       "module": "commonjs",
       "moduleResolution": "node",
       "emitDecoratorMetadata": true,
-      "experimentalDecorators": true,
+      "experimentalDecorators": true
    }
 }

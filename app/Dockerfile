@@ -1,5 +1,6 @@
 FROM node:19.2
-WORKDIR /
+WORKDIR /app
 COPY package.json .
 RUN npm install
-COPY . .
+COPY .. .
+CMD npm start
